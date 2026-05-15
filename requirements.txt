@@ -1,0 +1,7 @@
+ultralytics
+opencv-python
+yt-dlp
+numpy
+pandas
+supervision
+streamlit
