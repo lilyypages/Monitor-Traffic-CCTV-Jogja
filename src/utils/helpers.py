@@ -1,26 +1,43 @@
 import csv
 import os
+import logging
 from datetime import datetime
+from src.config.cameras import get_camera
 
-FILE_PATH = "data/logs/traffic.csv"
+LOG_DIR = "data/logs"
+os.makedirs(LOG_DIR, exist_ok=True)
 
-def save_log(location, count):
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.FileHandler(f"{LOG_DIR}/app.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-    file_exists = os.path.isfile(FILE_PATH)
+error_logger = logging.getLogger("error")
+error_handler = logging.FileHandler(f"{LOG_DIR}/error.log")
+error_handler.setLevel(logging.ERROR)
+error_logger.addHandler(error_handler)
+error_logger.setLevel(logging.ERROR)
 
-    with open(FILE_PATH, mode="a", newline="") as file:
+def save_log(data, camera_id="malioboro_01"):
+    filepath = f"{LOG_DIR}/traffic.csv"
+    file_exists = os.path.isfile(filepath)
+    fields = ["timestamp", "camera_id", "car", "motorcycle", "bus", "truck", "person", "total", "fps"]
 
-        writer = csv.writer(file)
-
+    with open(filepath, mode="a", newline="") as f:
+        writer = csv.writer(f)
         if not file_exists:
-            writer.writerow([
-                "timestamp",
-                "location",
-                "vehicle_count"
-            ])
+            writer.writerow(fields)
+        row = [data.get(f, 0) for f in fields]
+        row[0] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        writer.writerow(row)
 
-        writer.writerow([
-            datetime.now(),
-            location,
-            count
-        ])
+def get_logger():
+    return logger
+
+def get_error_logger():
+    return error_logger

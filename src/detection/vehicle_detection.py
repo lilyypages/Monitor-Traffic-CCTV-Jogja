@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 
-model = YOLO("yolov8n.pt")
+model = YOLO("models/yolov8n.pt")
 
 vehicle_classes = [2, 3, 5, 7]
 # 2=car
