@@ -5,8 +5,8 @@ import numpy as np
 from collections import defaultdict
 from datetime import datetime
 
-from src.stream.youtube_stream import get_youtube_stream_url
-from src.tracking.vehicle_tracking import track_objects
+from src.ingestion.youtube_stream import get_youtube_stream_url
+from src.processing.tracking.vehicle_tracking import track_objects
 from src.config.cameras import get_camera
 from src.storage.logger import save_data, create_table
 from src.utils.helpers import get_logger, get_error_logger

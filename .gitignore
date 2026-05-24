@@ -4,3 +4,9 @@ __pycache__/
 *.pt
 data/logs/*.csv
 data/logs/*.log
+.env
+*.egg-info/
+dist/
+build/
+.checkpoints/
+.spark/

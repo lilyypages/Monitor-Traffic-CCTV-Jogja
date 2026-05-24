@@ -8,3 +8,14 @@ streamlit
 plotly
 psycopg2-binary
 apscheduler
+kafka-python
+pyspark
+boto3
+minio
+prometheus-client
+apache-airflow
+scikit-learn
+statsmodels
+prophet
+requests
+python-dotenv
