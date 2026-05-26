@@ -1,7 +1,7 @@
 CAMERAS = {
     "malioboro_01": {
         "name": "Malioboro - Plaza",
-        "url": "https://www.youtube.com/watch?v=q7ZX2tSFEDg",
+        "url": "https://www.youtube.com/watch?v=kM8NdU_JtD0",
         "lat": -7.792,
         "lon": 110.365
     },
