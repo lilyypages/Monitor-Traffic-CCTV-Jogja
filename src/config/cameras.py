@@ -4,12 +4,6 @@ CAMERAS = {
         "url": "https://www.youtube.com/watch?v=kM8NdU_JtD0",
         "lat": -7.792,
         "lon": 110.365
-    },
-    "malioboro_02": {
-        "name": "Malioboro - Utara Inna",
-        "url": "https://www.youtube.com/live/ozAEmr_r5Pg",
-        "lat": -7.791,
-        "lon": 110.366
     }
 }
 
