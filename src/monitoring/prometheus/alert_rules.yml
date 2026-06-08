@@ -1,0 +1,27 @@
+groups:
+  - name: traffic_alerts
+    rules:
+      - alert: HighTrafficDensity
+        expr: avg(traffic_total) > 100
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kepadatan tinggi terdeteksi"
+          description: "Total kendaraan > 100 dalam 5 menit"
+
+      - alert: KafkaDown
+        expr: up{job="kafka"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Kafka service down"
+
+      - alert: SparkMasterDown
+        expr: up{job="spark-master"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Spark Master tidak merespon"
