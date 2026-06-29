@@ -1,0 +1,47 @@
+{
+  "title": "Traffic Monitor Malioboro",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Total Kendaraan per Menit",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "postgres", "uid": "traffic-pg"},
+      "targets": [
+        {
+          "rawSql": "SELECT timestamp AS time, total FROM traffic_logs ORDER BY timestamp",
+          "format": "time_series"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Total Kendaraan Hari Ini",
+      "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+      "datasource": {"type": "postgres", "uid": "traffic-pg"},
+      "targets": [
+        {
+          "rawSql": "SELECT SUM(total) FROM traffic_logs WHERE timestamp::date = NOW()::date",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "piechart",
+      "title": "Distribusi Jenis Kendaraan",
+      "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+      "datasource": {"type": "postgres", "uid": "traffic-pg"},
+      "targets": [
+        {
+          "rawSql": "SELECT SUM(car) AS car, SUM(motorcycle) AS motorcycle, SUM(bus) AS bus, SUM(truck) AS truck FROM traffic_logs",
+          "format": "table"
+        }
+      ]
+    }
+  ]
+}

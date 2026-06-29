@@ -12,8 +12,8 @@ default_args = {
 }
 
 def run_ml_training():
-    from src.ml.train import train_all
-    train_all()
+    from src.ml.train import run_training
+    run_training()
 
 with DAG(
     'traffic_weekly_ml_retrain',
