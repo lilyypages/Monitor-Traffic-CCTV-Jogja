@@ -290,15 +290,17 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "false"
     command: celery worker
 
-  # ===== APPLICATION =====
-  app:
+  # ===== APPLICATION (merged: detection + kafka-producer + alerting) =====
+  python-services:
     build:
       context: .
-      dockerfile: docker/app/Dockerfile
-    container_name: traffic-app
+      dockerfile: docker/python/Dockerfile
+    container_name: traffic-python-services
     restart: unless-stopped
     depends_on:
       postgres:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     volumes:
       - ./data/logs:/app/data/logs
@@ -310,6 +312,8 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       KAFKA_BROKER: kafka:29092
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
     deploy:
       resources:
         reservations:
@@ -317,42 +321,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-
-  kafka-producer:
-    build:
-      context: .
-      dockerfile: docker/app/Dockerfile
-    container_name: traffic-kafka-producer
-    restart: unless-stopped
-    depends_on:
-      kafka:
-        condition: service_healthy
-    volumes:
-      - ./data/logs:/app/data/logs
-    environment:
-      KAFKA_BROKER: kafka:29092
-    command: python -m src.kafka.producer
-
-  alerting-service:
-    image: python:3.11-slim
-    container_name: traffic-alerting
-    restart: unless-stopped
-    depends_on:
-      kafka:
-        condition: service_healthy
-    volumes:
-      - .:/app
-    working_dir: /app
-    environment:
-      KAFKA_BROKER: kafka:29092
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      ALERT_EMAIL_TO: ${ALERT_EMAIL_TO:-}
-    command: python -m src.alerting.telegram_bot
 
 volumes:
   pgdata:

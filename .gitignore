@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 *.pyo
+models/*.pt
 *.pt
 data/logs/*.csv
 data/logs/*.log

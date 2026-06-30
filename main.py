@@ -132,8 +132,6 @@ def main():
                 cv2.putText(annotated, text, (15, 30 + i * 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
-            cv2.imshow(f"Traffic Monitor - {camera['name']}", annotated)
-
             if time.time() - last_save_time >= SAVE_INTERVAL:
                 data = {
                     "timestamp": datetime.now().isoformat(),
@@ -154,15 +152,16 @@ def main():
                 )
                 last_save_time = time.time()
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                logger.info("Stream dihentikan oleh user")
+            import select
+            import sys
+            rfds, _, _ = select.select([sys.stdin], [], [], 0.001)
+            if rfds:
                 break
 
     except KeyboardInterrupt:
         logger.info("Program dihentikan")
     finally:
         cap.release()
-        cv2.destroyAllWindows()
         logger.info(f"Sesi selesai. Total kendaraan terhitung: {total_count}")
 
 

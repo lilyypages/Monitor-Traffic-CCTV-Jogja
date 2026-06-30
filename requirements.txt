@@ -4,8 +4,6 @@ yt-dlp
 numpy
 pandas
 supervision
-streamlit
-plotly
 psycopg2-binary
 apscheduler
 kafka-python

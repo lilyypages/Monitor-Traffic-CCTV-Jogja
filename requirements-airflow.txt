@@ -1,0 +1,10 @@
+psycopg2-binary
+kafka-python
+pyspark
+boto3
+minio
+prometheus-client
+requests
+python-dotenv
+pandas
+numpy
