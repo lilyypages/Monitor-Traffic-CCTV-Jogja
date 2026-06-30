@@ -305,6 +305,7 @@ services:
     volumes:
       - ./data/logs:/app/data/logs
       - ./models:/app/models
+      - ./src:/app/src
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -314,6 +315,9 @@ services:
       KAFKA_BROKER: kafka:29092
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      DENSITY_THRESHOLD: ${DENSITY_THRESHOLD:-30}
+      POLL_INTERVAL: ${POLL_INTERVAL:-5}
+      TZ: Asia/Jakarta
     deploy:
       resources:
         reservations:

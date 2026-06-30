@@ -1,5 +1,5 @@
 from pyspark.sql.functions import col, from_json, to_json, struct
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, DoubleType
 
 from src.spark.streaming.base_stream import create_spark_session
 from src.config import settings
@@ -11,7 +11,14 @@ THRESHOLD = settings.DENSITY_THRESHOLD
 schema = StructType([
     StructField("timestamp", StringType()),
     StructField("camera_id", StringType()),
+    StructField("car", IntegerType()),
+    StructField("motorcycle", IntegerType()),
+    StructField("bus", IntegerType()),
+    StructField("truck", IntegerType()),
+    StructField("person", IntegerType()),
     StructField("total", IntegerType()),
+    StructField("delta", IntegerType()),
+    StructField("fps", DoubleType()),
 ])
 
 df_raw = (
@@ -29,11 +36,11 @@ df = (
     .select("data.*")
 )
 
-alerts = df.filter(col("total") > THRESHOLD)
+alerts = df.filter(col("delta") > THRESHOLD)
 
 alerts_kafka = alerts.select(
     col("camera_id").cast("string").alias("key"),
-    to_json(struct("timestamp", "camera_id", "total")).alias("value"),
+    to_json(struct("timestamp", "camera_id", "delta", "total")).alias("value"),
 )
 
 query = (

@@ -22,7 +22,8 @@ def format_alert(alert):
     return (
         "\U0001F6A8 <b>Traffic Alert</b>\n"
         f"Kamera: {alert.get('camera_id', '-')}\n"
-        f"Total kendaraan: {alert.get('total', '-')}\n"
+        f"Kendaraan baru: {alert.get('delta', '-')}\n"
+        f"Total: {alert.get('total', '-')}\n"
         f"Waktu: {alert.get('timestamp', '-')}"
     )
 

@@ -1,3 +1,5 @@
+import os
+import sys
 import cv2
 import supervision as sv
 import time
@@ -92,6 +94,7 @@ def main():
 
     counted_ids = set()
     total_count = 0
+    last_saved_total = 0
     frame_count = 0
     last_save_time = time.time()
     fps_start = time.time()
@@ -132,7 +135,13 @@ def main():
                 cv2.putText(annotated, text, (15, 30 + i * 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
 
+            if sys.platform == "win32" or os.environ.get("DISPLAY") or os.environ.get("QT_QPA_PLATFORM"):
+                cv2.imshow("Traffic Monitor - Malioboro", annotated)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
             if time.time() - last_save_time >= SAVE_INTERVAL:
+                delta = total_count - last_saved_total
                 data = {
                     "timestamp": datetime.now().isoformat(),
                     "camera_id": CAMERA_ID,
@@ -142,21 +151,17 @@ def main():
                     "truck": class_counts.get(7, 0),
                     "person": class_counts.get(0, 0),
                     "total": total_count,
+                    "delta": delta,
                     "fps": round(current_fps, 1)
                 }
                 save_data(data)
+                last_saved_total = total_count
                 logger.info(
                     f"Data | Total:{total_count} | Car:{data['car']} Motor:{data['motorcycle']} "
                     f"Bus:{data['bus']} Truck:{data['truck']} Person:{data['person']} "
                     f"FPS:{current_fps:.1f}"
                 )
                 last_save_time = time.time()
-
-            import select
-            import sys
-            rfds, _, _ = select.select([sys.stdin], [], [], 0.001)
-            if rfds:
-                break
 
     except KeyboardInterrupt:
         logger.info("Program dihentikan")

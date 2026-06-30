@@ -80,7 +80,7 @@ def save_to_postgres(data):
 def save_to_csv(data):
     filepath = f"{CSV_DIR}/traffic.csv"
     file_exists = os.path.isfile(filepath)
-    fields = ["timestamp", "camera_id", "car", "motorcycle", "bus", "truck", "person", "total", "fps"]
+    fields = ["timestamp", "camera_id", "car", "motorcycle", "bus", "truck", "person", "total", "delta", "fps"]
     with open(filepath, mode="a", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
