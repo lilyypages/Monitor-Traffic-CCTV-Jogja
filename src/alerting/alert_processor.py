@@ -23,19 +23,24 @@ def run():
     print(f"[alert-processor] listening on {settings.TOPIC_EVENTS}, threshold={THRESHOLD}")
     for msg in consumer:
         data = msg.value
-        delta = data.get("delta", 0)
-        if delta > THRESHOLD:
+        vehicles_now = (
+            data.get("car", 0)
+            + data.get("motorcycle", 0)
+            + data.get("bus", 0)
+            + data.get("truck", 0)
+        )
+        if vehicles_now > THRESHOLD:
             alert = {
                 "timestamp": data.get("timestamp", ""),
                 "camera_id": data.get("camera_id", ""),
-                "delta": delta,
+                "vehicles": vehicles_now,
                 "total": data.get("total", 0),
             }
             producer.send(settings.TOPIC_ALERTS, value=alert)
             producer.flush()
             print(f"[alert-processor] ALERT sent: {alert}")
         else:
-            print(f"[alert-processor] delta={delta} <= {THRESHOLD}, no alert")
+            print(f"[alert-processor] vehicles={vehicles_now} <= {THRESHOLD}, no alert")
 
 
 if __name__ == "__main__":
