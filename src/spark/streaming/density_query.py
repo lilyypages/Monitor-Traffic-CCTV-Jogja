@@ -9,8 +9,8 @@ spark = create_spark_session("DensityQuery")
 AREA_SIZE = 100
 JDBC_URL = f"jdbc:postgresql://{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}"
 JDBC_PROPS = {
-    "user": settings.POSTGRES_USER,
-    "password": settings.POSTGRES_PASSWORD,
+    "user": "postgres",
+    "password": "postgres",
     "driver": "org.postgresql.Driver",
 }
 
@@ -23,7 +23,7 @@ schema = StructType([
 df_raw = (
     spark.readStream
     .format("kafka")
-    .option("kafka.bootstrap.servers", settings.KAFKA_BROKER)
+    .option("kafka.bootstrap.servers", "kafka:29092")
     .option("subscribe", settings.TOPIC_EVENTS)
     .option("startingOffsets", "latest")
     .load()

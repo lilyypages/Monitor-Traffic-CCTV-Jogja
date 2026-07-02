@@ -318,13 +318,13 @@ services:
       DENSITY_THRESHOLD: ${DENSITY_THRESHOLD:-30}
       POLL_INTERVAL: ${POLL_INTERVAL:-5}
       TZ: Asia/Jakarta
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
+#    deploy:
+#      resources:
+#        reservations:
+#          devices:
+#            - driver: nvidia
+#              count: 1
+#              capabilities: [gpu]
 
 volumes:
   pgdata:
