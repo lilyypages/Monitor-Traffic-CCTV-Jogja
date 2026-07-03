@@ -64,7 +64,7 @@ def save_to_postgres(data):
             INSERT INTO traffic_logs (timestamp, camera_id, car, motorcycle, bus, truck, person, total, fps)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            datetime.now(), data.get("camera_id"),
+            datetime.utcnow(), data.get("camera_id"),
             data.get("car", 0), data.get("motorcycle", 0),
             data.get("bus", 0), data.get("truck", 0),
             data.get("person", 0), data.get("total", 0), data.get("fps", 0.0)
@@ -86,7 +86,7 @@ def save_to_csv(data):
         if not file_exists:
             writer.writerow(fields)
         row = [data.get(f, 0) for f in fields]
-        row[0] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row[0] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         writer.writerow(row)
 
 def save_data(data):

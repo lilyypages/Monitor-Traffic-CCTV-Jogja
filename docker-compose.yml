@@ -127,26 +127,60 @@ services:
       SPARK_WORKER_MEMORY: 2g
       SPARK_NO_DAEMONIZE: 1
 
+  # ===== KAFKA INIT (auto-create topics) =====
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: traffic-kafka-init
+    restart: "no"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "Creating Kafka topics..."
+        kafka-topics --create --topic traffic-events --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --if-not-exists
+        kafka-topics --create --topic traffic-alerts --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --if-not-exists
+        kafka-topics --create --topic traffic-aggregated --bootstrap-server kafka:29092 --partitions 3 --replication-factor 1 --if-not-exists
+        echo "Kafka topics ready."
+
   # ===== VISUALIZATION =====
   grafana:
     image: grafana/grafana:latest
     container_name: traffic-grafana
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./src/dashboard/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./src/dashboard/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
     depends_on:
       - prometheus
       - loki
+      - kafka-init
     healthcheck:
       test: curl -f http://localhost:3000/api/health
       interval: 30s
       timeout: 10s
       retries: 5
+
+  grafana-proxy:
+    build: ./proxy
+    container_name: traffic-grafana-proxy
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GRAFANA_HOST: grafana
+      GRAFANA_PORT: "3000"
+      PROXY_PORT: "3000"
+    depends_on:
+      - grafana
 
   metabase:
     image: metabase/metabase:latest
@@ -236,6 +270,7 @@ services:
       - ./src/airflow/dags:/opt/airflow/dags
       - ./src:/opt/airflow/src
     environment:
+      PATH: /home/airflow/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-postgres/airflow
@@ -259,6 +294,7 @@ services:
       - ./src/airflow/dags:/opt/airflow/dags
       - ./src:/opt/airflow/src
     environment:
+      PATH: /home/airflow/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-postgres/airflow
@@ -282,6 +318,7 @@ services:
       - ./src/airflow/dags:/opt/airflow/dags
       - ./src:/opt/airflow/src
     environment:
+      PATH: /home/airflow/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       AIRFLOW__CORE__EXECUTOR: CeleryExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
       AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://airflow:airflow@airflow-postgres/airflow
@@ -302,6 +339,8 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
     volumes:
       - ./data/logs:/app/data/logs
       - ./models:/app/models
@@ -317,7 +356,6 @@ services:
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       DENSITY_THRESHOLD: ${DENSITY_THRESHOLD:-30}
       POLL_INTERVAL: ${POLL_INTERVAL:-5}
-      TZ: Asia/Jakarta
 #    deploy:
 #      resources:
 #        reservations:
@@ -325,6 +363,30 @@ services:
 #            - driver: nvidia
 #              count: 1
 #              capabilities: [gpu]
+
+  # ===== SPARK STREAMING =====
+  spark-streaming:
+    build:
+      context: .
+      dockerfile: docker/spark/Dockerfile
+    container_name: traffic-spark-streaming
+    restart: unless-stopped
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src:/opt/spark-app/src
+    environment:
+      SPARK_MASTER: local[2]
+      KAFKA_BROKER: kafka:29092
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: traffic_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      TZ: Asia/Jakarta
 
 volumes:
   pgdata:

@@ -7,7 +7,6 @@ supervision
 psycopg2-binary
 apscheduler
 kafka-python
-pyspark
 boto3
 minio
 prometheus-client

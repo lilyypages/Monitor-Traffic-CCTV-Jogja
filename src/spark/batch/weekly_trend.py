@@ -7,7 +7,7 @@ spark = create_spark_session("WeeklyTrend")
 
 DB_CONFIG = {
     "url": f"jdbc:postgresql://{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DB}",
-    "table": "traffic_logs",
+    "dbtable": "traffic_logs",
     "user": settings.POSTGRES_USER,
     "password": settings.POSTGRES_PASSWORD,
     "driver": "org.postgresql.Driver",

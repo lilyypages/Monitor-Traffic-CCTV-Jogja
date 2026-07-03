@@ -33,7 +33,7 @@ def save_log(data, camera_id="malioboro_01"):
         if not file_exists:
             writer.writerow(fields)
         row = [data.get(f, 0) for f in fields]
-        row[0] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row[0] = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         writer.writerow(row)
 
 def get_logger():
