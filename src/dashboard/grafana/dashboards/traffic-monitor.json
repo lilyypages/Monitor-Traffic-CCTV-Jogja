@@ -242,8 +242,27 @@
                     "group": "grafana-postgresql-datasource",
                     "kind": "DataQuery",
                     "spec": {
+                      "editorMode": "code",
                       "format": "table",
-                      "rawSql": "SELECT SUM(car) AS car, SUM(motorcycle) AS motorcycle, SUM(bus) AS bus, SUM(truck) AS truck FROM traffic_logs"
+                      "rawQuery": true,
+                      "rawSql": "SELECT\r\n    date_trunc('hour', timestamp) AS time,\r\n    MAX(total) - MIN(total) AS vehicle_count\r\nFROM traffic_logs\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY 1\r\nORDER BY 1;",
+                      "sql": {
+                        "columns": [
+                          {
+                            "parameters": [],
+                            "type": "function"
+                          }
+                        ],
+                        "groupBy": [
+                          {
+                            "property": {
+                              "type": "string"
+                            },
+                            "type": "groupBy"
+                          }
+                        ],
+                        "limit": 50
+                      }
                     },
                     "version": "v0"
                   },
@@ -258,9 +277,9 @@
         "description": "",
         "id": 3,
         "links": [],
-        "title": "Distribusi Jenis Kendaraan",
+        "title": "Total Kendaraan per Jam",
         "vizConfig": {
-          "group": "piechart",
+          "group": "barchart",
           "kind": "VizConfig",
           "spec": {
             "fieldConfig": {
@@ -269,35 +288,63 @@
                   "mode": "palette-classic"
                 },
                 "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "fillOpacity": 80,
+                  "gradientMode": "none",
                   "hideFrom": {
                     "legend": false,
                     "tooltip": false,
                     "viz": false
+                  },
+                  "lineWidth": 1,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
                   }
+                },
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
                 }
               },
               "overrides": []
             },
             "options": {
+              "barRadius": 0,
+              "barWidth": 0.97,
+              "fullHighlight": false,
+              "groupWidth": 0.7,
               "legend": {
+                "calcs": [],
                 "displayMode": "list",
                 "placement": "bottom",
                 "showLegend": true
               },
-              "pieType": "pie",
-              "reduceOptions": {
-                "calcs": [
-                  "lastNotNull"
-                ],
-                "fields": "",
-                "values": false
-              },
-              "sort": "desc",
+              "orientation": "auto",
+              "showValue": "auto",
+              "stacking": "none",
               "tooltip": {
                 "hideZeros": false,
                 "mode": "single",
                 "sort": "none"
-              }
+              },
+              "xTickLabelRotation": 0,
+              "xTickLabelSpacing": 0
             }
           },
           "version": "13.0.1+security-01"
@@ -326,7 +373,7 @@
                       "editorMode": "code",
                       "format": "table",
                       "rawQuery": true,
-                      "rawSql": "SELECT\r\n\r\ndate_trunc('minute',timestamp) as time,\r\n\r\nAVG(total) as vehicle_count\r\n\r\nFROM traffic_logs\r\n\r\nGROUP BY 1\r\n\r\nORDER BY 1;",
+                      "rawSql": "SELECT\r\ndate_trunc('minute', timestamp) AS time,\r\nMAX(total) - MIN(total) AS vehicle_count\r\nFROM traffic_logs\r\nWHERE $__timeFilter(timestamp)\r\nGROUP BY 1\r\nORDER BY 1;",
                       "sql": {
                         "columns": [
                           {
@@ -500,7 +547,7 @@
                       "editorMode": "code",
                       "format": "table",
                       "rawQuery": true,
-                      "rawSql": "SELECT\r\nCOALESCE(SUM(total),0)\r\nFROM traffic_logs\r\nWHERE timestamp::date=CURRENT_DATE;",
+                      "rawSql": "SELECT\r\nCOALESCE(MAX(total) - MIN(total), 0) AS total_vehicle\r\nFROM traffic_logs\r\nWHERE $__timeFilter(timestamp);",
                       "sql": {
                         "columns": [
                           {
@@ -602,7 +649,7 @@
                       "editorMode": "code",
                       "format": "table",
                       "rawQuery": true,
-                      "rawSql": "SELECT\r\nROUND(AVG(total),2)\r\nFROM traffic_logs;",
+                      "rawSql": "SELECT\r\nROUND(AVG(vehicle_count),2)\r\nFROM (\r\n    SELECT\r\n        date_trunc('minute', timestamp) AS minute,\r\n        MAX(total) - MIN(total) AS vehicle_count\r\n    FROM traffic_logs\r\n    WHERE $__timeFilter(timestamp)\r\n    GROUP BY 1\r\n) t;",
                       "sql": {
                         "columns": [
                           {
@@ -704,7 +751,7 @@
                       "editorMode": "code",
                       "format": "table",
                       "rawQuery": true,
-                      "rawSql": "SELECT\r\n\r\nCASE\r\n\r\nWHEN EXTRACT(ISODOW FROM timestamp)<=5\r\n\r\nTHEN 'Weekday'\r\n\r\nELSE 'Weekend'\r\n\r\nEND day_type,\r\n\r\nAVG(total)\r\n\r\nFROM traffic_logs\r\n\r\nGROUP BY day_type;",
+                      "rawSql": "SELECT\r\nday_name,\r\nROUND(AVG(vehicle_count),2) AS avg_vehicle\r\nFROM (\r\n    SELECT\r\n        DATE(timestamp) AS tanggal,\r\n        EXTRACT(ISODOW FROM timestamp) AS day_no,\r\n        CASE EXTRACT(ISODOW FROM timestamp)\r\n            WHEN 1 THEN 'Monday'\r\n            WHEN 2 THEN 'Tuesday'\r\n            WHEN 3 THEN 'Wednesday'\r\n            WHEN 4 THEN 'Thursday'\r\n            WHEN 5 THEN 'Friday'\r\n            WHEN 6 THEN 'Saturday'\r\n            WHEN 7 THEN 'Sunday'\r\n        END AS day_name,\r\n        MAX(total) - MIN(total) AS vehicle_count\r\n    FROM traffic_logs\r\n    WHERE $__timeFilter(timestamp)\r\n    GROUP BY DATE(timestamp), EXTRACT(ISODOW FROM timestamp)\r\n) t\r\nGROUP BY day_no, day_name\r\nORDER BY day_no;",
                       "sql": {
                         "columns": [
                           {
@@ -736,7 +783,7 @@
         "description": "",
         "id": 8,
         "links": [],
-        "title": "Weekday vs Weekend",
+        "title": "Pengunjung per hari (Senin - Minggu)",
         "vizConfig": {
           "group": "barchart",
           "kind": "VizConfig",
@@ -832,7 +879,7 @@
                       "editorMode": "code",
                       "format": "table",
                       "rawQuery": true,
-                      "rawSql": "SELECT\r\nMAX(total)\r\nFROM traffic_logs;",
+                      "rawSql": "SELECT\r\nMAX(vehicle_count)\r\nFROM (\r\n    SELECT\r\n        date_trunc('minute', timestamp),\r\n        MAX(total) - MIN(total) AS vehicle_count\r\n    FROM traffic_logs\r\n    WHERE $__timeFilter(timestamp)\r\n    GROUP BY 1\r\n) t;",
                       "sql": {
                         "columns": [
                           {
